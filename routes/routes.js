@@ -29,6 +29,8 @@ router.post('/student_class', classController.getStudentsInClass);
 
 
 //GRADES 
+router.get('/grades/history/:student_class_id', gradesController.getGradeHistory);
 router.post('/update_grades', gradesController.updateGrade);
+// router.post('/history_grade', gradesController.getGradeHistory);
 
 module.exports = router;

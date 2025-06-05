@@ -50,3 +50,36 @@ exports.updateGrade = async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 };
+
+
+exports.getGradeHistory = async (req, res) => {
+    const { student_class_id } = req.params;
+
+    const sql = `
+            SELECT 
+            g.process_score, 
+            g.midterm_score, 
+            g.final_score, 
+            g.score_avg, 
+            g.updated_by,
+            g.updated_at,
+            u.full_name AS updated_by_name
+        FROM 
+            grades g
+        LEFT JOIN 
+            user u ON g.updated_by = u.id
+        WHERE 
+            g.student_class_id = ?
+    `
+    try {
+        const [rows] = await db.promise().query(
+            sql,
+            [student_class_id]
+        );
+
+        res.status(200).json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
