@@ -47,3 +47,43 @@ exports.assignTeacher = async (req, res) => {
         res.status(201).json({ success: true, message: 'Cập nhật thành công', data: results });
     });
 };
+
+//XÓA MÔN HỌC
+exports.removeSubject = async (req, res) => {
+    const { subject_id } = req.params;
+
+    try {
+        const [result] = await db.promise().query(
+            'DELETE FROM subjects WHERE id = ?',
+            [subject_id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy môn học để xóa' });
+        }
+
+        res.json({ success: true, message: 'Xóa môn học thành công' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Lỗi khi xóa môn học' });
+    }
+};
+
+//SỬA MÔN HỌC
+exports.updateSubject = async (req, res) => {
+    const { subject_id, subject_name, credit } = req.body;
+
+    try {
+        const [result] = await db.promise().query(
+            'UPDATE subjects SET subject_name = ?, credit = ? WHERE id = ?',
+            [subject_name, credit, subject_id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy môn học để cập nhật' });
+        }
+
+        res.json({ success: true, message: 'Cập nhật môn học thành công' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Lỗi khi cập nhật môn học' });
+    }
+};

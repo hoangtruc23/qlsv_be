@@ -45,22 +45,32 @@ exports.registerUser = async (req, res) => {
         let rawPassword = "";
         const currentYear = new Date().getFullYear().toString().slice(-2); // yy
 
+        const generateRandomCode = () => {
+            const random = Math.floor(Math.random() * 10000); // 0 - 9999
+            return String(random).padStart(4, '0');
+        };
+
         if (role == 3) {
             // Role sinh viên
-            const [rows] = await db.promise().query(
-                `SELECT username FROM user WHERE username LIKE ? ORDER BY username DESC LIMIT 1`,
-                [`SVIT${currentYear}%`]
-            );
+            let formattedNumber, isUnique = false;
+            const prefix = `SVIT${currentYear}`;
 
-            let nextNumber = 0;
-            if (rows.length > 0) {
-                const lastUsername = rows[0].username;
-                const lastNumber = parseInt(lastUsername.slice(6));
-                nextNumber = lastNumber + 1;
+            // Lặp cho đến khi tìm được mã số chưa tồn tại
+            while (!isUnique) {
+                formattedNumber = generateRandomCode();
+                finalUsername = `${prefix}${formattedNumber}`; // Gán giá trị cho biến toàn cục
+
+                const [check] = await db.promise().query(
+                    `SELECT id FROM user WHERE username = ?`,
+                    [finalUsername]
+                );
+
+                if (check.length === 0) {
+                    isUnique = true;
+                }
             }
 
-            const formattedNumber = String(nextNumber).padStart(4, '0');
-            finalUsername = `SVIT${currentYear}${formattedNumber}`;
+            card_id = formattedNumber;
             rawPassword = 'sinhvien123';
         } else if (role == 2) {
             // Role giảng viên
@@ -82,8 +92,8 @@ exports.registerUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(rawPassword, 10); // độ mạnh 10
 
         await db.promise().query(
-            `INSERT INTO user (full_name, username, password, role) VALUES (?, ?, ?, ?)`,
-            [full_name, finalUsername, hashedPassword, role]
+            `INSERT INTO user (full_name, card_id, username, password, role) VALUES (?,?,?, ?, ?)`,
+            [full_name, card_id, finalUsername, hashedPassword, role]
         );
 
         return res.status(201).json({

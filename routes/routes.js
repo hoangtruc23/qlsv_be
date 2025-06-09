@@ -38,7 +38,7 @@ const gradesController = require('../controllers/GradesController');
  *       200:
  *         description: Thành công
  */
- 
+
 /**
  * @swagger
  * /api/create_user:
@@ -119,6 +119,8 @@ router.post('/create_user', loginController.registerUser);
 router.get('/subjects', subjectsController.getAllSubjects);
 router.post('/add_subject', subjectsController.postNewSubject);
 router.post('/assign_subject', subjectsController.assignTeacher);
+router.get('/remove_subject/:subject_id', subjectsController.removeSubject);
+router.post('/update_subject', subjectsController.updateSubject);
 
 
 // STUDENTS
@@ -229,6 +231,8 @@ router.get('/assign_class', classController.postAssignClasses);
 router.post('/add_class', classController.postNewClasses);
 router.post('/assign_student_class', classController.assignStudentToClass);
 router.post('/student_class', classController.getStudentsInClass);
+router.get('/classes/:class_id', classController.getStudentsByClass);
+router.post('/updateClassStatus', classController.postUpdateClassStatus);
 
 
 // GRADES

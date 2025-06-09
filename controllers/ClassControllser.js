@@ -92,16 +92,18 @@ exports.postNewClasses = async (req, res) => {
     }
 };
 
-// exports.assignStudentToClass = async (req, res) => {
-//     const { class_id, student_id } = req.body;
+exports.postUpdateClassStatus = async (req, res) => {
+    const { class_id, status } = req.body;
 
-//     await db.promise().query(
-//         'INSERT INTO student_classes (class_id, student_id) VALUES (?, ?)',
-//         [class_id, student_id]
-//     );
+    const query = 'UPDATE classes SET status = ? WHERE id = ?;';
 
-//     return res.status(201).json({ success: true, message: 'Gán sinh viên vào lớp thành công' });
-// };
+    db.query(query, [status, class_id], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.status(201).json({ success: true, message: 'Cập nhật thành công', data: results });
+    });
+};
 
 
 exports.assignStudentToClass = async (req, res) => {
@@ -130,8 +132,6 @@ exports.assignStudentToClass = async (req, res) => {
     }
 };
 
-
-
 exports.getStudentsInClass = async (req, res) => {
     const { class_id } = req.body;
     const sql = `
@@ -151,5 +151,31 @@ exports.getStudentsInClass = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Lỗi khi lấy danh sách sinh viên" });
+    }
+};
+
+exports.getStudentsByClass = async (req, res) => {
+    const { class_id } = req.params;
+
+    const sql = `
+            SELECT s.id, s.full_name, s.card_id
+            FROM user s
+            JOIN student_classes cs ON s.id = cs.student_id
+            WHERE cs.class_id = ?
+        `
+
+    try {
+        const [students] = await db.promise().query(sql, [class_id]);
+
+        res.json({
+            success: true,
+            data: students
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi lấy danh sách sinh viên theo lớp'
+        });
     }
 };
