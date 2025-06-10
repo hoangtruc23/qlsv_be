@@ -64,6 +64,7 @@ const gradesController = require('../controllers/GradesController');
 router.get('/login', loginController.getAllLogins);
 router.post('/login/check', loginController.checkLogin);
 router.post('/create_user', loginController.registerUser);
+router.post('/change_password', loginController.changePassword);
 
 
 // SUBJECTS

@@ -112,3 +112,50 @@ exports.registerUser = async (req, res) => {
         return res.status(500).json({ error: "Đã xảy ra lỗi khi tạo tài khoản.", err });
     }
 };
+
+
+exports.changePassword = async (req, res) => {
+    const { user_id, old_password, new_password } = req.body;
+    // const userId = req.user.id; // Đảm bảo middleware xác thực đã thêm user vào req
+
+    if (!old_password || !new_password) {
+        return res.status(400).json({ error: 'Vui lòng nhập đầy đủ mật khẩu cũ và mới.' });
+    }
+
+    try {
+        // 1. Lấy mật khẩu hiện tại từ DB
+        const [rows] = await db.promise().query(
+            'SELECT password FROM user WHERE id = ?',
+            [user_id]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Người dùng không tồn tại.' });
+        }
+
+        const hashedPassword = rows[0].password;
+
+        // 2. So sánh mật khẩu cũ
+        const isMatch = await bcrypt.compare(old_password, hashedPassword);
+
+        if (!isMatch) {
+            // return res.status(401).json({ error: 'Mật khẩu cũ không chính xác.' });
+            return res.json({ success: false, message: 'Mật khẩu cũ không chính xác.' });
+        }
+
+        // 3. Mã hóa mật khẩu mới
+        const newHashedPassword = await bcrypt.hash(new_password, 10);
+
+        // 4. Cập nhật vào DB
+        await db.promise().query(
+            'UPDATE user SET password = ? WHERE id = ?',
+            [newHashedPassword, user_id]
+        );
+
+        return res.json({ success: true, message: 'Đổi mật khẩu thành công.' });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Đã xảy ra lỗi khi đổi mật khẩu.' });
+    }
+};
